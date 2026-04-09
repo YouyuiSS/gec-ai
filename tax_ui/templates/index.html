@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tax Regulation Console</title>
+    <link rel="stylesheet" href="/static/app.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Python Backend Console</p>
+          <h1>Tax Regulation Workbench</h1>
+          <p class="hero-text">
+            Upload a PDF or reuse a sample, run the extraction pipeline, and inspect fields,
+            diffs, review items, and artifacts in one place.
+          </p>
+        </div>
+        <div class="hero-meta">
+          <div class="meta-card">
+            <span>OpenAI Endpoint</span>
+            <strong>{{ "Configured" if has_openai_env else "Missing" }}</strong>
+            <small>{{ default_openai_model or "No model env" }}</small>
+          </div>
+          <div class="meta-card">
+            <span>Database</span>
+            <strong>{{ "Configured" if has_db_env else "Missing" }}</strong>
+            <small>{{ default_db_name }}</small>
+          </div>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="panel form-panel">
+          <div class="panel-header">
+            <h2>Run Pipeline</h2>
+            <p>Single-run local console. Results stay on disk under <code>artifacts/web_ui</code>.</p>
+          </div>
+
+          <form id="run-form" class="run-form">
+            <label class="field">
+              <span>Sample PDF</span>
+              <select name="existing_pdf_path">
+                {% for sample in sample_pdfs %}
+                <option value="{{ sample.path }}">{{ sample.name }}</option>
+                {% endfor %}
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Or Upload PDF</span>
+              <input type="file" name="uploaded_pdf" accept="application/pdf" />
+            </label>
+
+            <div class="field-row">
+              <label class="field">
+                <span>Jurisdiction</span>
+                <input type="text" name="jurisdiction" value="HR" />
+              </label>
+              <label class="field">
+                <span>Tax Domain</span>
+                <input type="text" name="tax_domain" value="einvoice" />
+              </label>
+              <label class="field">
+                <span>Language</span>
+                <input type="text" name="language_code" value="en" />
+              </label>
+            </div>
+
+            <div class="field-row">
+              <label class="field">
+                <span>Version Label</span>
+                <input type="text" name="version_label" value="ui-run-001" />
+              </label>
+              <label class="field">
+                <span>Issued On</span>
+                <input type="date" name="issued_on" value="2025-04-25" />
+              </label>
+              <label class="field">
+                <span>Effective From</span>
+                <input type="date" name="effective_from" value="2025-05-01" />
+              </label>
+            </div>
+
+            <div class="field-row">
+              <label class="field checkbox">
+                <input type="checkbox" name="use_llm_enricher" />
+                <span>Enable LLM enrichment</span>
+              </label>
+              <label class="field checkbox">
+                <input type="checkbox" name="persist_to_db" />
+                <span>Persist to Postgres</span>
+              </label>
+              <label class="field checkbox">
+                <input type="checkbox" name="db_load_latest_published" />
+                <span>Use latest published baseline</span>
+              </label>
+            </div>
+
+            <div class="field-row">
+              <label class="field">
+                <span>LLM Model</span>
+                <input type="text" name="llm_model" value="{{ default_openai_model }}" placeholder="gpt-5.4" />
+              </label>
+              <label class="field">
+                <span>LLM Candidate Fields</span>
+                <input type="number" name="llm_max_candidate_fields" min="1" max="20" value="1" />
+              </label>
+              <label class="field">
+                <span>DB Name</span>
+                <input type="text" name="db_name" value="{{ default_db_name }}" />
+              </label>
+            </div>
+
+            <div class="field-row">
+              <label class="field checkbox">
+                <input type="checkbox" name="create_db" />
+                <span>Create DB if missing</span>
+              </label>
+              <label class="field checkbox">
+                <input type="checkbox" name="auto_publish" />
+                <span>Auto publish when clean</span>
+              </label>
+            </div>
+
+            <button class="submit-button" type="submit">Start Run</button>
+          </form>
+        </section>
+
+        <aside class="sidebar-stack">
+          <section class="panel sidebar-panel">
+            <div class="panel-header">
+              <h2>Recent Runs</h2>
+              <p>Runs stay in memory while this server process is alive.</p>
+            </div>
+            <div id="run-list" class="run-list"></div>
+          </section>
+
+          <section class="panel sidebar-panel">
+            <div class="panel-header panel-header-inline">
+              <div>
+                <h2>DB Versions</h2>
+                <p id="version-copy">Load persisted candidate or published versions.</p>
+              </div>
+              <button id="refresh-versions" class="mini-button secondary" type="button">Refresh</button>
+            </div>
+            <div id="version-list" class="version-list"></div>
+          </section>
+        </aside>
+      </main>
+
+      <section class="panel status-panel">
+        <div class="panel-header panel-header-inline">
+          <div>
+            <h2>Selection</h2>
+            <p id="status-copy">No run selected.</p>
+          </div>
+          <div id="detail-actions" class="detail-actions"></div>
+        </div>
+        <div id="selection-meta" class="selection-meta empty-state">
+          Open a run or a persisted version to inspect its bundle and artifacts.
+        </div>
+        <div id="summary-cards" class="summary-cards"></div>
+        <div id="artifact-links" class="artifact-links"></div>
+      </section>
+
+      <section class="panel results-panel">
+        <div class="results-head">
+          <div>
+            <h2>Fields</h2>
+            <p>Search across field code, name, type, or semantic notes.</p>
+          </div>
+          <input id="field-search" class="search-input" type="search" placeholder="Filter fields..." />
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Cardinality</th>
+                <th>Sample</th>
+                <th>Semantic Notes</th>
+              </tr>
+            </thead>
+            <tbody id="field-table-body">
+              <tr><td colspan="6" class="empty-cell">Run the pipeline to inspect fields.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="split-panels">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Validation Issues</h2>
+            <p id="validation-count">0 issues</p>
+          </div>
+          <div id="validation-list" class="list-block empty-state">No issues yet.</div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Review Items</h2>
+            <p id="review-count">0 items</p>
+          </div>
+          <div id="review-list" class="list-block empty-state">No review items yet.</div>
+        </section>
+      </section>
+    </div>
+
+    <script id="page-data" type="application/json">
+      {{ {"samplePdfs": sample_pdfs, "hasDbEnv": has_db_env, "defaultDbName": default_db_name}|tojson }}
+    </script>
+    <script src="/static/app.js"></script>
+  </body>
+  </html>

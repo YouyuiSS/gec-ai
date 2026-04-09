@@ -1,0 +1,409 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/tax_field_extraction.schema.json",
+  "title": "Tax Regulation Extraction Bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "document",
+    "fields",
+    "rules",
+    "code_lists"
+  ],
+  "properties": {
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "jurisdiction",
+        "tax_domain",
+        "language_code",
+        "version_label"
+      ],
+      "properties": {
+        "jurisdiction": {
+          "type": "string"
+        },
+        "tax_domain": {
+          "type": "string"
+        },
+        "language_code": {
+          "type": "string"
+        },
+        "version_label": {
+          "type": "string"
+        },
+        "issued_on": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "effective_from": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "effective_to": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        }
+      }
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/fieldDefinition"
+      }
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ruleDefinition"
+      }
+    },
+    "code_lists": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/codeListDefinition"
+      }
+    }
+  },
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "page_number",
+        "source_kind",
+        "quote_text"
+      ],
+      "properties": {
+        "page_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "source_kind": {
+          "type": "string",
+          "enum": [
+            "table",
+            "paragraph",
+            "example",
+            "appendix"
+          ]
+        },
+        "section_title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "quote_text": {
+          "type": "string"
+        }
+      }
+    },
+    "pathMap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "invoice",
+        "credit_note"
+      ],
+      "properties": {
+        "invoice": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "credit_note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "remark": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "min_char_length": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "max_char_length": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "min_decimal_scale": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "max_decimal_scale": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "format_hint": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "fieldDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "field_code",
+        "field_name",
+        "field_kind",
+        "origin",
+        "confidence",
+        "evidence"
+      ],
+      "properties": {
+        "field_code": {
+          "type": "string"
+        },
+        "parent_group_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "field_name": {
+          "type": "string"
+        },
+        "field_description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "field_kind": {
+          "type": "string",
+          "enum": [
+            "atomic",
+            "group"
+          ]
+        },
+        "data_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "occurrence_min": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "occurrence_max": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ]
+        },
+        "sample_value": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "value_set_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "semantic_notes": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "paths": {
+          "$ref": "#/$defs/pathMap"
+        },
+        "constraints": {
+          "$ref": "#/$defs/constraints"
+        },
+        "origin": {
+          "type": "string",
+          "enum": [
+            "explicit",
+            "inferred"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        }
+      }
+    },
+    "ruleDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rule_code",
+        "rule_type",
+        "expression_text",
+        "referenced_fields",
+        "origin",
+        "confidence",
+        "evidence"
+      ],
+      "properties": {
+        "rule_code": {
+          "type": "string"
+        },
+        "rule_type": {
+          "type": "string",
+          "enum": [
+            "presence",
+            "dependency",
+            "exclusive",
+            "equality",
+            "arithmetic",
+            "code_list",
+            "format",
+            "other"
+          ]
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ]
+        },
+        "expression_text": {
+          "type": "string"
+        },
+        "referenced_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "origin": {
+          "type": "string",
+          "enum": [
+            "explicit",
+            "inferred"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        }
+      }
+    },
+    "codeListDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code_list_name",
+        "origin",
+        "confidence",
+        "evidence"
+      ],
+      "properties": {
+        "code_list_name": {
+          "type": "string"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "code",
+              "label"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "origin": {
+          "type": "string",
+          "enum": [
+            "explicit",
+            "inferred"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        }
+      }
+    }
+  }
+}
