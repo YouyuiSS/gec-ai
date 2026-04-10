@@ -1,0 +1,27 @@
+[
+  {
+    "name": "hr-einvoice-legacy",
+    "module": "hr_einvoice_legacy",
+    "description": "Croatia eInvoice HR extension specification parser backed by the existing project script.",
+    "filename_contains": [
+      "Specification-of-the-usecase-of-eInvoice-with-HR-extensions"
+    ],
+    "text_contains": [
+      "UBL Invoice Path",
+      "UBL CreditNote Path (Approval)",
+      "HR-BT-1"
+    ]
+  },
+  {
+    "name": "hr-ai-generated-smoke",
+    "module": "hr_ai_generated_smoke",
+    "description": "AI generated smoke extractor for HR eInvoice layout",
+    "filename_contains": [
+      "Specification-of-the-usecase-of-eInvoice-with-HR-extensions"
+    ],
+    "text_contains": [
+      "UBL Invoice Path",
+      "HR-BT-1"
+    ]
+  }
+]

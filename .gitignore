@@ -1,5 +1,8 @@
 .DS_Store
-.opencode/
+.opencode/*
+!.opencode/skills/
+.opencode/skills/*
+!.opencode/skills/tax-law-parser/
 .venv/
 __pycache__/
 *.py[cod]

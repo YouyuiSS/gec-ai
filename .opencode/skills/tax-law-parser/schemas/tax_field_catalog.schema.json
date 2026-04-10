@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/tax_field_catalog.schema.json",
+  "title": "Tax Field Catalog Record",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "field_id",
+      "field_name",
+      "field_description",
+      "note_on_use",
+      "data_type",
+      "cardinality",
+      "invoice_path",
+      "credit_note_path",
+      "report_path",
+      "sample_value",
+      "value_set",
+      "interpretation",
+      "rules",
+      "source_pages",
+      "min_char_length",
+      "max_char_length",
+      "min_decimal_precision",
+      "max_decimal_precision",
+      "extractor_name"
+    ],
+    "properties": {
+      "field_id": { "type": "string" },
+      "field_name": { "type": "string" },
+      "field_description": { "type": "string" },
+      "note_on_use": { "type": "string" },
+      "data_type": { "type": "string" },
+      "cardinality": { "type": "string" },
+      "invoice_path": { "type": "string" },
+      "credit_note_path": { "type": "string" },
+      "report_path": { "type": "string" },
+      "sample_value": { "type": "string" },
+      "value_set": { "type": "string" },
+      "interpretation": { "type": "string" },
+      "rules": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "source_pages": {
+        "type": "array",
+        "items": { "type": "integer" }
+      },
+      "min_char_length": { "type": "string" },
+      "max_char_length": { "type": "string" },
+      "min_decimal_precision": { "type": "string" },
+      "max_decimal_precision": { "type": "string" },
+      "extractor_name": { "type": "string" }
+    },
+    "additionalProperties": true
+  }
+}
