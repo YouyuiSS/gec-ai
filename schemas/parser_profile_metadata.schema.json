@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/parser_profile_metadata.schema.json",
+  "title": "Parser Profile Metadata v0",
+  "description": "Minimal metadata surface that the web repair workflow may adjust without changing server code.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "header_aliases",
+    "path_replace_rules",
+    "block_scores",
+    "constraint_rules"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "header_aliases": {
+      "type": "object",
+      "description": "Maps raw table header text to canonical extractor keys.",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/canonical_header_key"
+      }
+    },
+    "path_replace_rules": {
+      "type": "array",
+      "description": "Ordered text replacements applied before invoice and credit-note paths are split.",
+      "maxItems": 50,
+      "items": {
+        "$ref": "#/$defs/path_replace_rule"
+      }
+    },
+    "block_scores": {
+      "type": "object",
+      "description": "Score adjustments used when selecting the best detail block and table block for a field.",
+      "additionalProperties": false,
+      "required": [
+        "detail",
+        "table"
+      ],
+      "properties": {
+        "detail": {
+          "$ref": "#/$defs/score_map"
+        },
+        "table": {
+          "$ref": "#/$defs/score_map"
+        }
+      }
+    },
+    "constraint_rules": {
+      "type": "array",
+      "description": "Regex-driven inference rules for lengths, scales, and format hints.",
+      "maxItems": 50,
+      "items": {
+        "$ref": "#/$defs/constraint_rule"
+      }
+    }
+  },
+  "$defs": {
+    "canonical_header_key": {
+      "type": "string",
+      "enum": [
+        "field_id",
+        "field_name",
+        "field_description",
+        "note_on_use",
+        "data_type",
+        "cardinality",
+        "invoice_path",
+        "credit_note_path",
+        "remark"
+      ]
+    },
+    "path_replace_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from",
+        "to"
+      ],
+      "properties": {
+        "from": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "to": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      }
+    },
+    "score_map": {
+      "type": "object",
+      "description": "Keys are engine-defined signals such as contains:Business Rule, first_line_regex:\\.{5,}, or line_startswith_path.",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": -20,
+        "maximum": 20
+      }
+    },
+    "constraint_assignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "min_char_length": {
+          "type": "string",
+          "pattern": "^\\d+$",
+          "maxLength": 4
+        },
+        "max_char_length": {
+          "type": "string",
+          "pattern": "^\\d+$",
+          "maxLength": 4
+        },
+        "min_decimal_precision": {
+          "type": "string",
+          "pattern": "^\\d+$",
+          "maxLength": 3
+        },
+        "max_decimal_precision": {
+          "type": "string",
+          "pattern": "^\\d+$",
+          "maxLength": 3
+        },
+        "format_hint": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        }
+      }
+    },
+    "constraint_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "regex"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "maxLength": 64
+        },
+        "regex": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "set": {
+          "$ref": "#/$defs/constraint_assignment"
+        },
+        "set_if_empty": {
+          "$ref": "#/$defs/constraint_assignment"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "set"
+          ]
+        },
+        {
+          "required": [
+            "set_if_empty"
+          ]
+        }
+      ]
+    }
+  }
+}
