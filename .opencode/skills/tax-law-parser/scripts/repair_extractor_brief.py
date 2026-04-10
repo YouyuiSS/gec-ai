@@ -18,7 +18,7 @@ def parse_args() -> argparse.Namespace:
         description="Generate a deterministic repair brief for a tax-law-parser extractor."
     )
     parser.add_argument("--pdf", required=True, help="Path to the target tax regulation PDF.")
-    parser.add_argument("--extractor", required=True, help="Extractor name from registry.json.")
+    parser.add_argument("--extractor", required=True, help="Extractor name from the skill registry.")
     parser.add_argument("--outdir", required=True, help="Directory for run outputs and repair brief files.")
     parser.add_argument("--baseline", help="Optional trusted baseline field_catalog.json.")
     parser.add_argument(

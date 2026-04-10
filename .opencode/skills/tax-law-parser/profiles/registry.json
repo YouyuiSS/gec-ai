@@ -1,8 +1,12 @@
 [
   {
     "name": "hr-einvoice-legacy",
-    "module": "hr_einvoice_legacy",
+    "family": "en16931_ubl",
+    "module": "profiles.families.en16931_ubl.hr_overlay",
     "description": "Croatia eInvoice HR extension specification parser backed by the existing project script.",
+    "jurisdiction": "HR",
+    "tax_domain": "einvoice",
+    "document_language": "en",
     "filename_contains": [
       "Specification-of-the-usecase-of-eInvoice-with-HR-extensions"
     ],
@@ -14,8 +18,12 @@
   },
   {
     "name": "hr-ai-generated-smoke",
-    "module": "hr_ai_generated_smoke",
-    "description": "AI generated smoke extractor for HR eInvoice layout",
+    "family": "legacy_flat",
+    "module": "extractors.hr_ai_generated_smoke",
+    "description": "Legacy flat smoke extractor kept for repair-brief experimentation.",
+    "jurisdiction": "HR",
+    "tax_domain": "einvoice",
+    "document_language": "en",
     "filename_contains": [
       "Specification-of-the-usecase-of-eInvoice-with-HR-extensions"
     ],
@@ -26,8 +34,12 @@
   },
   {
     "name": "rs-srbdt-ext-2025",
-    "module": "rs_srbdt_ext_2025",
+    "family": "en16931_ubl",
+    "module": "profiles.families.en16931_ubl.rs_overlay",
     "description": "Serbia SRBDT EN16931 extension specification parser.",
+    "jurisdiction": "RS",
+    "tax_domain": "einvoice",
+    "document_language": "sr",
     "filename_contains": [
       "spec-srbdt-ext-en16931"
     ],

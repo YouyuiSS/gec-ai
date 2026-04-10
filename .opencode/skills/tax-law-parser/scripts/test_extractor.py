@@ -9,7 +9,13 @@ from pathlib import Path
 
 SCRIPT_PATH = Path(__file__).resolve()
 SKILL_ROOT = SCRIPT_PATH.parents[1]
-EXTRACTORS_DIR = SKILL_ROOT / "extractors"
+REPO_ROOT = SCRIPT_PATH.parents[4]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+if str(SKILL_ROOT) not in sys.path:
+    sys.path.insert(0, str(SKILL_ROOT))
+
+from skill_registry import find_registry_entry, normalize_module_name, resolve_baseline_path, resolve_module_path
 
 
 def parse_args() -> argparse.Namespace:
@@ -17,7 +23,7 @@ def parse_args() -> argparse.Namespace:
         description="Compile, run, validate, and optionally compare a tax-law-parser extractor."
     )
     parser.add_argument("--pdf", required=True, help="Path to the target tax regulation PDF.")
-    parser.add_argument("--extractor", required=True, help="Extractor name from registry.json.")
+    parser.add_argument("--extractor", required=True, help="Extractor name from the skill registry.")
     parser.add_argument("--outdir", required=True, help="Directory for parser outputs.")
     parser.add_argument(
         "--baseline",
@@ -28,13 +34,6 @@ def parse_args() -> argparse.Namespace:
         help="Optional directory for diff outputs. Defaults to <outdir>/diff when --baseline is provided.",
     )
     return parser.parse_args()
-
-
-def extractor_module_path(extractor_name: str) -> Path:
-    module_name = extractor_name.replace("-", "_")
-    return EXTRACTORS_DIR / f"{module_name}.py"
-
-
 def run_command(command: list[str]) -> tuple[int, str]:
     result = subprocess.run(command, check=False, capture_output=True, text=True)
     output = "\n".join(part for part in [result.stdout, result.stderr] if part).strip()
@@ -52,15 +51,33 @@ def main() -> int:
         else outdir / "diff"
     )
 
-    module_path = extractor_module_path(args.extractor)
-    if not module_path.exists():
-        raise SystemExit(f"Extractor module not found: {module_path}")
+    registry_entry = find_registry_entry(args.extractor)
+    if registry_entry is None:
+        raise SystemExit(f"Extractor '{args.extractor}' was not found in the skill registry.")
+
+    module_import_name = normalize_module_name(str(registry_entry["module"]))
+    module_path = resolve_module_path(str(registry_entry["module"]))
+    baseline_source = "explicit" if baseline_path else "auto"
+    if baseline_path is None:
+        candidate_baseline = resolve_baseline_path(registry_entry)
+        if candidate_baseline and candidate_baseline.exists():
+            baseline_path = candidate_baseline.resolve()
+        else:
+            baseline_path = None
+            baseline_source = "missing"
+    elif not baseline_path.exists():
+        raise SystemExit(f"Baseline file not found: {baseline_path}")
 
     report: dict[str, object] = {
         "extractor": args.extractor,
+        "family": registry_entry.get("family", ""),
+        "jurisdiction": registry_entry.get("jurisdiction", ""),
+        "module_import": module_import_name,
         "module_path": str(module_path),
         "pdf_path": str(pdf_path),
         "outdir": str(outdir),
+        "baseline_path": str(baseline_path) if baseline_path else "",
+        "baseline_source": baseline_source,
         "compile": None,
         "run": None,
         "validate": None,
