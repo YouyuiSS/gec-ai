@@ -2,6 +2,7 @@
   {
     "name": "hr-einvoice-legacy",
     "family": "en16931_ubl",
+    "stability": "stable",
     "module": "profiles.families.en16931_ubl.hr_overlay",
     "description": "Croatia eInvoice HR extension specification parser backed by the existing project script.",
     "jurisdiction": "HR",
@@ -19,6 +20,7 @@
   {
     "name": "hr-ai-generated-smoke",
     "family": "legacy_flat",
+    "stability": "experimental",
     "module": "extractors.hr_ai_generated_smoke",
     "description": "Legacy flat smoke extractor kept for repair-brief experimentation.",
     "jurisdiction": "HR",
@@ -35,6 +37,7 @@
   {
     "name": "rs-srbdt-ext-2025",
     "family": "en16931_ubl",
+    "stability": "stable",
     "module": "profiles.families.en16931_ubl.rs_overlay",
     "description": "Serbia SRBDT EN16931 extension specification parser.",
     "jurisdiction": "RS",
