@@ -1,0 +1,89 @@
+schema_version: "1.0"
+jurisdiction: "HR"
+tax_domain: "einvoice"
+verified_on: "2026-04-11"
+sources:
+  - source_id: "hr_einvoice_extensions_spec"
+    source_name: "Specification for the basic use of eInvoices with extensions"
+    source_kind: "specification"
+    document_family: "en16931_ubl"
+    authority: "Ministry of Finance / Tax Administration"
+    discovery_owner: "Fina e-Racun"
+    landing_url: "https://www.fina.hr/digitalizacija-poslovanja/e-racun/tehnicka-specifikacija/technical-specifications-invoicing-for-web-services"
+    attachment_url: "https://porezna.gov.hr/fiskalizacija/api/dokumenti/164"
+    monitor_strategy:
+      primary_anchor: "landing_page_then_attachment"
+      detect:
+        - "landing_html_checksum"
+        - "attachment_checksum"
+        - "manual_revision_table_review"
+      review_if:
+        - "landing page changes without attachment checksum change"
+        - "attachment checksum changes"
+        - "specification identifier changes"
+    landing_page_text_contains:
+      - "SpecificationIdentifier"
+      - "urn:mfin.gov.hr:cius-2025:1.0"
+      - "Specification for the Basic Use of eInvoices with Extensions"
+    version_signal:
+      location: "pdf_revision_table"
+      extraction_mode: "manual_or_custom_parser"
+      observed_value: "Latest revision entry visible on 2026-04-11: version 1.5 with date 14.12.2025."
+    current_observation:
+      observed_on: "2026-04-11"
+      notes:
+        - "The Fina landing page points to the Croatian extension specification hosted under porezna.gov.hr."
+        - "The PDF revision table shows version history starting 25.4.2025 and latest visible entry 14.12.2025."
+
+  - source_id: "hr_fina_technical_specs_news"
+    source_name: "Fina technical specifications update announcements"
+    source_kind: "specification_news"
+    document_family: "en16931_ubl"
+    authority: "Fina"
+    landing_url: "https://www.fina.hr/obavijesti/fina-e-racun/azurirane-tehnicke-specifikacije-na-servisu-fina-e-racun-i-e-racun-za-drzavu"
+    monitor_strategy:
+      primary_anchor: "landing_page"
+      detect:
+        - "landing_html_checksum"
+        - "published_date_text"
+      review_if:
+        - "new technical specification links appear"
+        - "published date changes"
+    landing_page_text_contains:
+      - "Ažurirane tehničke specifikacije"
+      - "Tehnička specifikacija slanja računa web servisom za poslovne korisnike PKI metodom sukladno EN 16931"
+    version_signal:
+      location: "landing_page"
+      extraction_mode: "published_date_text"
+      observed_value: "4. 12. 2025."
+    current_observation:
+      observed_on: "2026-04-11"
+      notes:
+        - "This page is a useful change trigger, but not the canonical specification itself."
+        - "Use it to discover refreshed technical documents before re-downloading the authoritative PDF."
+
+  - source_id: "hr_fina_legal_technical_basis"
+    source_name: "Legal and technical basis for Fina e-Racun"
+    source_kind: "legal_basis"
+    document_family: "einvoice_legal_basis"
+    authority: "Fina"
+    landing_url: "https://www.fina.hr/digitalizacija-poslovanja/e-racun/zakonska-i-tehnicka-osnova-za-fina-e-racun"
+    monitor_strategy:
+      primary_anchor: "landing_page"
+      detect:
+        - "landing_html_checksum"
+      review_if:
+        - "listed laws or standards change"
+    landing_page_text_contains:
+      - "Zakonska i tehnička osnova za Fina e-Račun"
+      - "Zakon o Porezu na dodanu vrijednost"
+      - "HRN EN 16931-1:2017"
+    version_signal:
+      location: "landing_page"
+      extraction_mode: "listed_acts_snapshot"
+      observed_value: "Page lists Croatian VAT law, VAT rulebook, public procurement e-invoice law, and EN 16931 references."
+    current_observation:
+      observed_on: "2026-04-11"
+      notes:
+        - "This is a legal index page, not a downloadable law source."
+        - "Use it as a secondary signal for regulatory scope changes."

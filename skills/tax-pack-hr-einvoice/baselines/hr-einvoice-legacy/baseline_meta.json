@@ -1,0 +1,10 @@
+{
+  "extractor": "hr-einvoice-legacy",
+  "family": "en16931_ubl",
+  "jurisdiction": "HR",
+  "tax_domain": "einvoice",
+  "document_language": "en",
+  "source_catalog": "/Users/xueyunsong/Documents/GitHub/gec-ai/artifacts/tax-skill/demo/field_catalog.json",
+  "promoted_at_utc": "2026-04-10T07:49:19.292891+00:00",
+  "note": "Seeded from verified HR baseline artifact."
+}

@@ -1,0 +1,90 @@
+schema_version: "1.0"
+jurisdiction: "RS"
+tax_domain: "einvoice"
+verified_on: "2026-04-11"
+sources:
+  - source_id: "rs_einvoice_cius_spec"
+    source_name: "Updated specification for the adapted implementation of EN 16931-1"
+    source_kind: "specification"
+    document_family: "en16931_ubl"
+    authority: "SEF / Ministry of Finance"
+    landing_url: "https://www.efaktura.gov.rs/tekst/en/5370/updated-specification-for-the-adapted-implementation-of-the-en-16931-1-standard-for-electronic-invoices-in-domestic-trade-in-the-republic-of-serbia.php"
+    attachment_url: "https://www.efaktura.gov.rs/extfile/en/5384/spec-srbdt-ext-en16931-2024-08-22.1%20-%20Copy%20%281%29.pdf"
+    monitor_strategy:
+      primary_anchor: "landing_page_then_attachment"
+      detect:
+        - "landing_html_checksum"
+        - "attachment_checksum"
+        - "pdf_first_page_version"
+      review_if:
+        - "landing page version text changes"
+        - "attachment checksum changes"
+        - "landing page text and PDF first page disagree"
+    landing_page_text_contains:
+      - "Updated specification for the adapted implementation of the EN 16931-1 standard for Electronic invoices in domestic trade in the Republic of Serbia"
+      - "August 22, 2024"
+    version_signal:
+      location: "pdf_first_page"
+      extraction_mode: "regex"
+      regex: "Верзија од \\d{2}\\.\\d{2}\\.\\d{4}\\."
+      observed_value: "Верзија од 06.06.2025."
+    current_observation:
+      observed_on: "2026-04-11"
+      notes:
+        - "The landing page still says version dated August 22, 2024."
+        - "The currently linked PDF first page says version dated 06.06.2025."
+        - "Monitor the landing page as the anchor and treat the direct PDF URL as replaceable."
+
+  - source_id: "rs_law_on_electronic_invoicing"
+    source_name: "Law on Electronic Invoicing"
+    source_kind: "law"
+    document_family: "einvoice_law"
+    authority: "SEF / Ministry of Finance"
+    landing_url: "https://www.efaktura.gov.rs/tekst/en/5635/law-on-electronic-invoicing.php"
+    attachment_url: "https://www.efaktura.gov.rs/extfile/en/5638/%D0%97a%D0%BAo%D0%BD%20o%20e%D0%BBe%D0%BA%D1%82%D1%80o%D0%BD%D1%81%D0%BAo%D0%BC%20%D1%84a%D0%BA%D1%82%D1%83%D1%80%D0%B8%D1%81a%D1%9A%D1%83_%2044_2021-4%20129_2021-119%20138_2022-284.pdf"
+    monitor_strategy:
+      primary_anchor: "landing_page_then_attachment"
+      detect:
+        - "landing_html_checksum"
+        - "attachment_checksum"
+        - "official_gazette_citation"
+      review_if:
+        - "gazette citation changes"
+        - "attachment checksum changes"
+    landing_page_text_contains:
+      - "Law on Electronic Invoicing"
+    version_signal:
+      location: "pdf_first_page"
+      extraction_mode: "official_gazette_citation"
+      observed_value: "\"Official Gazette of the Republic of Serbia\" Nos. 44/2021, 129/2021, 138/2022."
+    current_observation:
+      observed_on: "2026-04-11"
+      notes:
+        - "The PDF is a consolidated text downloaded through efaktura.gov.rs."
+        - "This source is regulatory context, not the field-level technical specification."
+
+  - source_id: "rs_value_added_tax_law"
+    source_name: "Value Added Tax Law"
+    source_kind: "law"
+    document_family: "vat_law"
+    authority: "SEF / Ministry of Finance"
+    landing_url: "https://www.efaktura.gov.rs/tekst/en/5647/value-added-tax-law.php"
+    monitor_strategy:
+      primary_anchor: "landing_page"
+      detect:
+        - "landing_html_checksum"
+        - "official_gazette_citation"
+      review_if:
+        - "gazette citation changes"
+        - "linked attachment changes"
+    landing_page_text_contains:
+      - "Value Added Tax Law"
+      - "\"Official Gazette of the Republic of Serbia\""
+    version_signal:
+      location: "landing_page"
+      extraction_mode: "official_gazette_citation"
+      observed_value: "Landing page cites amendments through Official Gazette No. 138 of December 12, 2022."
+    current_observation:
+      observed_on: "2026-04-11"
+      notes:
+        - "This is useful for monitoring legal changes that may affect invoice semantics even when the CIUS PDF does not move."

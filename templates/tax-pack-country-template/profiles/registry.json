@@ -1,0 +1,21 @@
+[
+  {
+    "name": "xx-example-profile",
+    "family": "en16931_ubl",
+    "stability": "experimental",
+    "module_path": "profiles/overlays/country_overlay.py",
+    "baseline_path": "baselines/xx-example-profile/field_catalog.json",
+    "description": "Template profile for a new country-specific eInvoice specification.",
+    "jurisdiction": "XX",
+    "tax_domain": "einvoice",
+    "document_language": "en",
+    "filename_contains": [
+      "replace-with-real-pdf-name-fragment"
+    ],
+    "text_contains": [
+      "replace with a unique title fragment",
+      "replace with a table header fragment",
+      "replace with a business term marker"
+    ]
+  }
+]

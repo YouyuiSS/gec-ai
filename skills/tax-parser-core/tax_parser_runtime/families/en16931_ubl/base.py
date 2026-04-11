@@ -1,0 +1,315 @@
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from pathlib import Path
+import re
+from typing import Callable
+
+
+TYPE_MAP = {
+    "A": "Amount",
+    "B": "Binary Object",
+    "C": "Code",
+    "D": "Date",
+    "I": "Identifier",
+    "O": "Document Reference Identifier",
+    "P": "Percent",
+    "Q": "Quantity",
+    "S": "Attribute",
+    "T": "Text",
+    "U": "Unit Price Amount",
+}
+
+
+SemanticNameParser = Callable[[str], tuple[str, str]]
+
+
+def default_semantic_name_parser(value: str) -> tuple[str, str]:
+    lines = [line.strip().lstrip("+").strip() for line in value.splitlines() if line.strip()]
+    if not lines:
+        return "", ""
+
+    english_lines = [line for line in lines if not _contains_cyrillic(line)]
+    local_lines = [line for line in lines if _contains_cyrillic(line)]
+
+    if english_lines or local_lines:
+        return " ".join(english_lines).strip(), " ".join(local_lines).strip()
+
+    if len(lines) == 1:
+        return lines[0], lines[0]
+    return lines[0], " ".join(lines[1:])
+
+
+def _contains_cyrillic(text: str) -> bool:
+    return bool(re.search(r"[\u0400-\u04FF]", text))
+
+
+@dataclass
+class En16931UblConfig:
+    profile_name: str
+    field_id_pattern: re.Pattern[str] = field(
+        default_factory=lambda: re.compile(r"^(?:[A-Z]{2,}-)?BT-\d+(?:\.\d+)?$")
+    )
+    group_id_pattern: re.Pattern[str] = field(
+        default_factory=lambda: re.compile(r"^(?:[A-Z]{2,}-)?BG-\d+(?:\.\d+)?$")
+    )
+    path_pattern: re.Pattern[str] = field(
+        default_factory=lambda: re.compile(r"^/(?:Invoice|CreditNote)/")
+    )
+    note_prefixes: tuple[str, ...] = ("Напомена:", "Note:")
+    header_markers: tuple[str, ...] = (
+        "иден.",
+        "оригинални термин",
+        "додатна напомена",
+        "ubl путања",
+        "business term",
+        "ubl invoice path",
+    )
+    semantic_name_parser: SemanticNameParser = default_semantic_name_parser
+
+
+class En16931UblTableParser:
+    def __init__(self, config: En16931UblConfig) -> None:
+        self.config = config
+
+    def extract(self, pdf_path: Path) -> list[dict[str, object]]:
+        import pdfplumber
+
+        records: dict[str, dict[str, object]] = {}
+        current: dict[str, object] | None = None
+
+        with pdfplumber.open(str(pdf_path)) as pdf:
+            for page in pdf.pages:
+                tables = page.extract_tables() or []
+                for table in tables:
+                    rows = [self._normalize_row(row) for row in table]
+                    for row in rows:
+                        if not any(row):
+                            continue
+                        if self._is_header_row(row):
+                            continue
+
+                        field_id = row[0]
+                        if self.config.field_id_pattern.fullmatch(field_id):
+                            if current:
+                                self._store_record(records, current)
+                            current = self._build_record(
+                                field_id=field_id,
+                                row=row,
+                                page_number=int(page.page_number),
+                            )
+                            continue
+
+                        if self.config.group_id_pattern.fullmatch(field_id):
+                            if current:
+                                self._store_record(records, current)
+                                current = None
+                            continue
+
+                        if current and self._looks_like_anonymous_subfield_row(row):
+                            self._store_record(records, current)
+                            current = None
+                            continue
+
+                        if current and self._looks_like_path_row(row):
+                            self._apply_path_row(current, row, page_number=int(page.page_number))
+                            continue
+
+                        if current and self._looks_like_continuation_row(row):
+                            self._apply_continuation_row(current, row, page_number=int(page.page_number))
+
+            if current:
+                self._store_record(records, current)
+
+        return [
+            self._finalize_record(record)
+            for _, record in sorted(records.items())
+            if str(record.get("field_id", "")).strip()
+        ]
+
+    def _normalize_row(self, row: list[str | None]) -> list[str]:
+        cells = [(cell or "").replace("\r", "\n").strip() for cell in row]
+        while len(cells) < 5:
+            cells.append("")
+        return cells[:5]
+
+    def _is_header_row(self, row: list[str]) -> bool:
+        joined = " ".join(part for part in row if part).lower()
+        return any(marker in joined for marker in self.config.header_markers)
+
+    def _build_record(self, field_id: str, row: list[str], page_number: int) -> dict[str, object]:
+        english_name, local_name = self.config.semantic_name_parser(row[1])
+        return {
+            "field_id": field_id,
+            "field_name": local_name or english_name,
+            "field_description": english_name,
+            "note_on_use": row[4],
+            "data_type": TYPE_MAP.get(row[3], row[3]),
+            "cardinality": row[2],
+            "invoice_path": "",
+            "credit_note_path": "",
+            "report_path": "",
+            "sample_value": "",
+            "value_set": "",
+            "interpretation": "",
+            "rules": [],
+            "source_pages": {page_number},
+            "min_char_length": "",
+            "max_char_length": "",
+            "min_decimal_precision": "",
+            "max_decimal_precision": "",
+            "extractor_name": self.config.profile_name,
+        }
+
+    def _normalize_path_line(self, value: str) -> str:
+        normalized = value.strip()
+        if normalized.startswith(("Invoice/", "CreditNote/")):
+            return "/" + normalized
+        return normalized
+
+    def _is_document_path_root(self, value: str) -> bool:
+        normalized = self._normalize_path_line(value)
+        return normalized.startswith("/Invoice/") or normalized.startswith("/CreditNote/")
+
+    def _is_path_like_line(self, value: str) -> bool:
+        return bool(self.config.path_pattern.match(self._normalize_path_line(value)))
+
+    def _looks_like_path_row(self, row: list[str]) -> bool:
+        path_block = row[2]
+        return any(self._is_path_like_line(line) for line in path_block.splitlines() if line.strip())
+
+    def _looks_like_anonymous_subfield_row(self, row: list[str]) -> bool:
+        return bool(row[1]) and bool(row[3]) and not row[0] and not self._looks_like_path_row(row)
+
+    def _apply_path_row(self, record: dict[str, object], row: list[str], page_number: int) -> None:
+        semantic_cell = row[1].strip()
+        if semantic_cell:
+            english_name, local_name = self.config.semantic_name_parser(semantic_cell)
+            if not str(record.get("field_name", "")).strip() and (local_name or english_name):
+                record["field_name"] = local_name or english_name
+            if not str(record.get("field_description", "")).strip() and english_name:
+                record["field_description"] = english_name
+
+        invoice_paths, credit_paths, notes = self._split_path_block(row[2])
+
+        if invoice_paths:
+            record["invoice_path"] = "\n".join(invoice_paths)
+        if credit_paths:
+            record["credit_note_path"] = "\n".join(credit_paths)
+        if invoice_paths or credit_paths:
+            combined = []
+            if invoice_paths:
+                combined.append("Invoice: " + "\n".join(invoice_paths))
+            if credit_paths:
+                combined.append("CreditNote: " + "\n".join(credit_paths))
+            record["report_path"] = "\n".join(combined)
+        if notes:
+            existing = str(record.get("note_on_use", "")).strip()
+            extra = "\n".join(notes).strip()
+            record["note_on_use"] = extra if not existing else f"{existing}\n{extra}"
+        source_pages = set(record.get("source_pages", []))
+        source_pages.add(page_number)
+        record["source_pages"] = source_pages
+
+    def _looks_like_continuation_row(self, row: list[str]) -> bool:
+        return bool(row[4]) and not row[0] and not row[1] and not row[2] and not row[3]
+
+    def _apply_continuation_row(self, record: dict[str, object], row: list[str], page_number: int) -> None:
+        extra = row[4].strip()
+        if not extra:
+            return
+        existing = str(record.get("note_on_use", "")).strip()
+        record["note_on_use"] = extra if not existing else f"{existing}\n{extra}"
+        source_pages = set(record.get("source_pages", []))
+        source_pages.add(page_number)
+        record["source_pages"] = source_pages
+
+    def _store_record(self, records: dict[str, dict[str, object]], record: dict[str, object]) -> None:
+        field_id = str(record.get("field_id", "")).strip()
+        if not field_id:
+            return
+        existing = records.get(field_id)
+        if existing is None:
+            records[field_id] = record
+            return
+
+        for key in [
+            "field_name",
+            "field_description",
+            "note_on_use",
+            "data_type",
+            "cardinality",
+            "invoice_path",
+            "credit_note_path",
+            "report_path",
+            "sample_value",
+            "value_set",
+            "interpretation",
+            "min_char_length",
+            "max_char_length",
+            "min_decimal_precision",
+            "max_decimal_precision",
+        ]:
+            current_value = str(existing.get(key, "")).strip()
+            incoming_value = str(record.get(key, "")).strip()
+            if not current_value and incoming_value:
+                existing[key] = incoming_value
+
+        existing_pages = set(existing.get("source_pages", []))
+        existing_pages.update(record.get("source_pages", []))
+        existing["source_pages"] = existing_pages
+
+    def _finalize_record(self, record: dict[str, object]) -> dict[str, object]:
+        finalized = dict(record)
+        finalized["rules"] = list(finalized.get("rules", []))
+        finalized["source_pages"] = sorted({int(page) for page in finalized.get("source_pages", [])})
+        for key in [
+            "field_name",
+            "field_description",
+            "note_on_use",
+            "data_type",
+            "cardinality",
+            "invoice_path",
+            "credit_note_path",
+            "report_path",
+            "sample_value",
+            "value_set",
+            "interpretation",
+            "min_char_length",
+            "max_char_length",
+            "min_decimal_precision",
+            "max_decimal_precision",
+            "extractor_name",
+        ]:
+            finalized[key] = str(finalized.get(key, "")).strip()
+        return finalized
+
+    def _split_path_block(self, value: str) -> tuple[list[str], list[str], list[str]]:
+        raw_lines = [self._normalize_path_line(line) for line in value.splitlines() if line.strip()]
+        normalized_paths: list[str] = []
+        notes: list[str] = []
+        current_path = ""
+
+        for line in raw_lines:
+            if line.startswith(self.config.note_prefixes):
+                if current_path:
+                    normalized_paths.append(current_path)
+                    current_path = ""
+                notes.append(line)
+                continue
+            if self._is_document_path_root(line):
+                if current_path:
+                    normalized_paths.append(current_path)
+                current_path = line
+                continue
+            if current_path:
+                current_path += line
+            else:
+                notes.append(line)
+
+        if current_path:
+            normalized_paths.append(current_path)
+
+        invoice_paths = [line for line in normalized_paths if line.startswith("/Invoice/")]
+        credit_paths = [line for line in normalized_paths if line.startswith("/CreditNote/")]
+        return invoice_paths, credit_paths, notes
