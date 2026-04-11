@@ -51,5 +51,24 @@
       "Табела 1 Речник елемената семантичког модела",
       "BT-1 + Invoice number"
     ]
+  },
+  {
+    "name": "de-xrechnung-3-0-1",
+    "family": "en16931_ubl",
+    "stability": "experimental",
+    "module": "profiles.families.en16931_ubl.de_xrechnung_overlay",
+    "description": "Germany XRechnung 3.0.1 e-invoice specification parser.",
+    "jurisdiction": "DE",
+    "tax_domain": "einvoice",
+    "document_language": "de",
+    "filename_contains": [
+      "XRechnung",
+      "xrechnung"
+    ],
+    "text_contains": [
+      "Semantischer Datentyp",
+      "Specification identifier",
+      "urn:xeinkauf.de:kosit:xrechnung_3.0"
+    ]
   }
 ]

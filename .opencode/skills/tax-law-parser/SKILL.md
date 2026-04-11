@@ -11,16 +11,16 @@ metadata:
 
 ## What I do
 
-- Parse tax regulation PDFs into structured JSON and CSV field catalogs.
-- Reuse an existing extractor when the document layout still matches a known template.
-- Create or update a Python extractor directly when the PDF layout changes.
-- Validate the output before reporting success.
+- Act as the single user-facing entry point for uploaded tax regulation PDFs.
+- Parse PDFs into structured JSON and CSV field catalogs when an existing parser path already fits.
+- Internally route to onboarding, repair, or publish-back workflows based on parser state.
+- Keep engineering branch decisions behind the frontdoor instead of requiring the user to ask for them explicitly.
 
 ## When to use me
 
-- A new tax law PDF needs field extraction.
-- An existing tax-law parser no longer matches the latest PDF format.
-- You need a repeatable parser script that can be maintained over time.
+- A user uploads a tax law or eInvoice PDF and wants it parsed.
+- The user does not know which country pack, profile, or engineering workflow applies.
+- The system needs to decide internally whether this is a normal parse, a repair, or a new-country onboarding case.
 
 ## OpenCode-native behavior
 
@@ -28,7 +28,33 @@ metadata:
 - Use the attached file or the path already available in the agent context.
 - Do not ask the user to `cd`, activate a virtualenv, or export model variables unless they explicitly ask for manual CLI instructions.
 - Do not ask the user to configure a model when running inside OpenCode. Use the model OpenCode already has.
-- Edit extractor Python files directly, then use the local scripts in this skill to test them.
+- Do not require the user to ask for onboarding, repair, or publish-back by name. Decide those branches from runtime evidence.
+- Edit extractor Python files directly only after parser state indicates that a repair or onboarding path is actually needed.
+
+## Frontdoor routing model
+
+This skill should be treated as the single frontdoor for tax-law PDF parsing.
+
+The user only expresses the business goal:
+
+- parse this PDF
+
+The agent should then route internally by state:
+
+1. `parse_success`
+   - current parser path works
+   - validate and return output
+2. `parse_no_match`
+   - no existing profile fits
+   - enter onboarding path for a new country or new document family
+3. `parse_drift_detected`
+   - profile exists but output drifts or gate fails
+   - enter repair path
+4. `local_fix_validated`
+   - local fix passes validation
+   - if it should become upstream truth, enter publish-back path
+
+Do not push these workflow decisions onto the user prompt.
 
 ## Directory layout
 
