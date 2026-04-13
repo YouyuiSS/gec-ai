@@ -18,6 +18,10 @@
   前台单入口、后台状态分流的正式方案。
 - [tax_skill_workbench_architecture_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_workbench_architecture_v1.md)
   当前 `core + pack + harness + monitor` 工作台的正式架构说明。
+- [tax_family_program_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_family_program_v1.md)
+  公司级国家盘点、family 分桶、family base 开发顺序的正式方案，当前 web 侧区分 `web_drilldown_tree` 和 `web_inline_table`。
+- [tax_pdf_family_split_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_pdf_family_split_v1.md)
+  当前 PDF 输入为什么至少要拆成 `field_dictionary` 和 `xsd_spec` 两类。
 - [tax_skill_install_guide.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_install_guide.md)
   对外安装和运行说明，面向 skill 使用者。
 - [tax_skill_publish_back_architecture_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_publish_back_architecture_v1.md)
@@ -61,11 +65,13 @@
 
 1. [tax_skill_frontdoor_state_machine_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_frontdoor_state_machine_v1.md)
 2. [tax_skill_workbench_architecture_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_workbench_architecture_v1.md)
-3. [tax_skill_install_guide.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_install_guide.md)
-4. [tax_skill_publish_back_architecture_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_publish_back_architecture_v1.md)
-5. [tax_skill_core_pack_split_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_core_pack_split_v1.md)
-6. [tax_skill_multi_install_migration_plan_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_multi_install_migration_plan_v1.md)
-7. 需要追历史时，再看第 3、4 类文档
+3. [tax_family_program_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_family_program_v1.md)
+4. [tax_pdf_family_split_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_pdf_family_split_v1.md)
+5. [tax_skill_install_guide.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_install_guide.md)
+6. [tax_skill_publish_back_architecture_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_publish_back_architecture_v1.md)
+7. [tax_skill_core_pack_split_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_core_pack_split_v1.md)
+8. [tax_skill_multi_install_migration_plan_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_multi_install_migration_plan_v1.md)
+9. 需要追历史时，再看第 3、4 类文档
 
 ## 6. 当前文档边界
 
@@ -73,6 +79,8 @@
 
 - `workbench architecture`
   解释当前结构和分层职责
+- `family program`
+  解释公司级国家清单、family 分桶和 family base 研发顺序
 - `install guide`
   解释怎么安装和运行
 - `split / migration plans`

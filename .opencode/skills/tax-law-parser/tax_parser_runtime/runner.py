@@ -5,6 +5,7 @@ import csv
 import json
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
 
 
 SCRIPT_PATH = Path(__file__).resolve()
@@ -16,6 +17,7 @@ if str(SKILL_ROOT) not in sys.path:
     sys.path.insert(0, str(SKILL_ROOT))
 
 from tax_parser_runtime.registry import describe_registry_module, import_extractor_module, load_registry
+from tax_parser_runtime.source_io import SourceInput, parse_source_args, read_text_sample, source_metadata
 
 
 DEFAULT_COLUMNS = [
@@ -42,8 +44,9 @@ DEFAULT_COLUMNS = [
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run the tax-law-parser skill on a PDF.")
-    parser.add_argument("--pdf", required=True, help="Path to the tax regulation PDF.")
+    parser = argparse.ArgumentParser(description="Run the tax-law-parser skill on a PDF or supported web source.")
+    parser.add_argument("--source", help="Path or URL to the source specification.")
+    parser.add_argument("--pdf", help="Backward-compatible alias for local PDF path.")
     parser.add_argument("--outdir", required=True, help="Directory for generated outputs.")
     parser.add_argument("--extractor", help="Explicit extractor name from the skill registry.")
     parser.add_argument(
@@ -54,40 +57,38 @@ def parse_args() -> argparse.Namespace:
         "--pages-for-match",
         type=int,
         default=6,
-        help="Number of pages to sample when auto-selecting an extractor.",
+        help="Number of pages to sample when auto-selecting a PDF extractor.",
     )
     return parser.parse_args()
 
 
-def read_text_sample(pdf_path: Path, max_pages: int) -> str:
-    try:
-        import pdfplumber
-    except ModuleNotFoundError as exc:
-        raise RuntimeError("pdfplumber is required to inspect PDF files.") from exc
-
-    chunks: list[str] = []
-    with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages[:max_pages]:
-            chunks.append(page.extract_text() or "")
-    return "\n".join(chunks)
-
-
-def choose_extractor(registry: list[dict[str, object]], pdf_path: Path, pages_for_match: int, explicit: str | None):
+def choose_extractor(
+    registry: list[dict[str, object]],
+    source: SourceInput,
+    pages_for_match: int,
+    explicit: str | None,
+):
     if explicit:
         for item in registry:
             if item["name"] == explicit:
                 return item, {"strategy": "explicit", "score": None}
         raise RuntimeError(f"Extractor '{explicit}' was not found in the skill registry.")
 
-    filename = pdf_path.name
-    text_sample = read_text_sample(pdf_path, max_pages=pages_for_match)
+    filename = Path(urlparse(source.identifier).path).name if source.url else (source.path.name if source.path else source.identifier)
+    text_sample = read_text_sample(source, max_pages=pages_for_match)
 
     best_item = None
     best_score = -1
     for item in registry:
+        expected_kind = str(item.get("input_kind", "")).strip() or "pdf"
+        if expected_kind != source.kind:
+            continue
         score = 0
         for needle in item.get("filename_contains", []):
             if needle and needle in filename:
+                score += 3
+        for needle in item.get("url_contains", []):
+            if source.url and needle and needle in source.url:
                 score += 3
         for needle in item.get("text_contains", []):
             if needle and needle in text_sample:
@@ -98,7 +99,7 @@ def choose_extractor(registry: list[dict[str, object]], pdf_path: Path, pages_fo
 
     if best_item is None or best_score <= 0:
         raise RuntimeError(
-            "No extractor matched this PDF. Create a new extractor with "
+            "No extractor matched this source. Create a new extractor with "
             "scripts/bootstrap_extractor.py, then implement or adjust the parser directly in Python."
         )
 
@@ -109,7 +110,7 @@ def load_extractor(entry: dict[str, object]):
     module = import_extractor_module(entry)
     if not hasattr(module, "extract"):
         raise RuntimeError(
-            f"Extractor module '{describe_registry_module(entry)}' does not define extract(pdf_path)."
+            f"Extractor module '{describe_registry_module(entry)}' does not define extract(source)."
         )
     return module
 
@@ -176,29 +177,24 @@ def write_outputs(outdir: Path, records: list[dict[str, object]], metadata: dict
 
 def main() -> int:
     args = parse_args()
-    pdf_path = Path(args.pdf).expanduser().resolve()
+    source = parse_source_args(source=args.source, pdf=args.pdf)
     outdir = Path(args.outdir).expanduser().resolve()
     pack_dir = Path(args.pack_dir).expanduser().resolve() if args.pack_dir else None
-
-    if not pdf_path.exists():
-        raise SystemExit(f"PDF not found: {pdf_path}")
-    if pdf_path.suffix.lower() != ".pdf":
-        raise SystemExit("Only PDF inputs are supported.")
 
     registry = load_registry(pack_dir=pack_dir)
     extractor_entry, selection_meta = choose_extractor(
         registry=registry,
-        pdf_path=pdf_path,
+        source=source,
         pages_for_match=args.pages_for_match,
         explicit=args.extractor,
     )
     module = load_extractor(extractor_entry)
-    records = normalize_records(module.extract(pdf_path))
+    records = normalize_records(module.extract(source.path or source.url or source.identifier))
     outputs = write_outputs(
         outdir=outdir,
         records=records,
         metadata={
-            "pdf_path": str(pdf_path),
+            **source_metadata(source),
             "pack_dir": str(pack_dir) if pack_dir else "",
             "extractor_name": extractor_entry["name"],
             "extractor_module": describe_registry_module(extractor_entry),

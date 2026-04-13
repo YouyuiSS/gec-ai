@@ -1,6 +1,6 @@
 ---
 name: tax-law-parser
-description: Parse tax regulation PDFs into structured field catalogs, update extractor scripts when document structure changes, and validate outputs before delivery.
+description: Parse tax regulation PDFs and supported e-invoice specification websites into structured field catalogs, route inputs to the right parser family automatically, update extractor scripts when document structure changes, and validate outputs before delivery.
 license: Internal
 compatibility: opencode
 metadata:
@@ -11,33 +11,53 @@ metadata:
 
 ## What I do
 
-- Act as the single user-facing entry point for uploaded tax regulation PDFs.
-- Parse PDFs into structured JSON and CSV field catalogs when an existing parser path already fits.
+- Act as the single user-facing entry point for tax regulation sources.
+- Accept either an uploaded PDF, a local file path, or a supported specification URL.
+- Parse supported sources into structured JSON and CSV field catalogs when an existing parser path already fits.
 - Internally route to onboarding, repair, or publish-back workflows based on parser state.
 - Keep engineering branch decisions behind the frontdoor instead of requiring the user to ask for them explicitly.
 
 ## When to use me
 
 - A user uploads a tax law or eInvoice PDF and wants it parsed.
+- A user sends a specification URL and wants it parsed.
 - The user does not know which country pack, profile, or engineering workflow applies.
 - The system needs to decide internally whether this is a normal parse, a repair, or a new-country onboarding case.
 
 ## OpenCode-native behavior
 
-- Assume the user can attach the PDF directly in chat.
-- Use the attached file or the path already available in the agent context.
+- Assume the user can attach the PDF directly in chat or paste the specification URL directly in chat.
+- Use the attached file, local path, or URL already available in the agent context.
 - Do not ask the user to `cd`, activate a virtualenv, or export model variables unless they explicitly ask for manual CLI instructions.
 - Do not ask the user to configure a model when running inside OpenCode. Use the model OpenCode already has.
 - Do not require the user to ask for onboarding, repair, or publish-back by name. Decide those branches from runtime evidence.
 - Edit extractor Python files directly only after parser state indicates that a repair or onboarding path is actually needed.
+- Do not ask the user to name the parser family. Infer it from the source shape.
 
 ## Frontdoor routing model
 
-This skill should be treated as the single frontdoor for tax-law PDF parsing.
+This skill should be treated as the single frontdoor for tax-law source parsing.
 
 The user only expresses the business goal:
 
-- parse this PDF
+- parse this source
+
+The source may be:
+
+- a local PDF
+- a local HTML file
+- a supported specification URL
+
+Before choosing an extractor, first route by source family:
+
+1. `pdf_field_dictionary`
+   - row-oriented e-invoice dictionary PDFs
+2. `pdf_xsd_spec`
+   - element and attribute block PDFs
+3. `web_inline_table`
+   - websites where the main page already contains the field table
+4. `web_drilldown_tree`
+   - websites where the main page is a tree and node details live on child pages
 
 The agent should then route internally by state:
 
@@ -101,11 +121,11 @@ Do not push these workflow decisions onto the user prompt.
 
 ## Standard workflow
 
-1. Inspect the input PDF and decide whether an existing extractor still matches.
+1. Inspect the input source and decide whether an existing extractor still matches.
 2. Try the current parser first.
 3. If auto-selection fails or the output is obviously wrong:
    - inspect `profiles/registry.json`
-   - if the PDF still matches a known family, create or update a family overlay in `profiles/families/<family>/`
+   - if the source still matches a known family, create or update a family overlay in `profiles/families/<family>/`
    - if no family fits yet, create or update a document-specific extractor in `extractors/`
    - use the family references under `references/` before changing a base parser
    - update the appropriate registry
@@ -122,11 +142,13 @@ Do not push these workflow decisions onto the user prompt.
 ## Hard rules
 
 - Never overwrite a validated extractor for a different document family. Add a new extractor instead.
-- Prefer a family overlay over a new flat extractor whenever the PDF still fits an existing document family.
+- Prefer a family overlay over a new flat extractor whenever the source still fits an existing document family.
+- Prefer a web family overlay over a one-off scraper whenever the source still fits an existing web family.
 - Only change a family base parser when the issue is clearly shared across multiple overlays.
 - After reading a repair brief, decide the edit scope with `references/repair-playbook.md` before changing code.
 - Keep old extractors available so historical PDFs remain reproducible.
-- Do not claim a parser works until it has been executed against the target PDF.
+- Do not claim a parser works until it has been executed against the target source.
+- Do not claim a website parser works until it has been executed against the target URL.
 - Always run `py_compile` on changed Python files before finishing.
 - Always run the output validator before finishing.
 - Whenever a trusted baseline exists, run the compare script before finishing.
@@ -160,13 +182,15 @@ Each record in `field_catalog.json` must include:
 
 ## Common commands
 
-Run the parser:
+Run the parser on any supported source:
 
 ```bash
 python .opencode/skills/tax-law-parser/scripts/run_tax_parser.py \
-  --pdf <pdf_path> \
+  --source <pdf_path_or_url> \
   --outdir <outdir>
 ```
+
+The old `--pdf` flag remains as a backward-compatible alias for local PDFs.
 
 Scaffold a new extractor:
 
@@ -186,7 +210,7 @@ Test an extractor end-to-end:
 
 ```bash
 python .opencode/skills/tax-law-parser/scripts/test_extractor.py \
-  --pdf <pdf_path> \
+  --source <pdf_path_or_url> \
   --extractor <extractor_name> \
   --outdir <outdir>
 ```
@@ -206,6 +230,8 @@ python .opencode/skills/tax-law-parser/scripts/repair_extractor_brief.py \
   --outdir <brief_outdir> \
   --baseline <baseline_field_catalog.json>
 ```
+
+`repair_extractor_brief.py` still assumes PDF input today. Use it only for PDF families until that helper is widened.
 
 Validate output:
 
@@ -234,11 +260,11 @@ python .opencode/skills/tax-law-parser/scripts/promote_baseline.py \
 
 ## OpenCode user instructions
 
-When the user uploads a new PDF, the agent should follow this order:
+When the user uploads a new PDF or sends a supported specification URL, the agent should follow this order:
 
 1. Run the parser with auto-selection.
 2. If the result looks correct, validate and return the output paths.
-3. If the result looks wrong, first decide whether the PDF belongs to an existing family.
+3. If the result looks wrong, first decide whether the source belongs to an existing family.
 4. If it does, create or update a family overlay. If it does not, create or update a flat extractor.
 5. Run `test_extractor.py`.
 6. If a baseline exists, run the compare script and summarize missing, extra, and changed fields.
@@ -246,9 +272,9 @@ When the user uploads a new PDF, the agent should follow this order:
 
 The user should not need to know repository paths or environment setup for normal use.
 
-## If the PDF format changed
+## If the source format changed
 
-- First check whether the PDF still belongs to an existing family under `profiles/families/`.
+- First check whether the source still belongs to an existing family under `profiles/families/`.
 - If it does, start from that family's `template_overlay.py`.
 - If no family fits yet, start from `extractors/template_generic.py`.
 - Keep shared table logic in the family base parser and keep jurisdiction-specific logic in the overlay.

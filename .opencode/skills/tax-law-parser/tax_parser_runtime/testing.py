@@ -26,7 +26,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Compile, run, validate, and optionally compare a tax-law-parser extractor."
     )
-    parser.add_argument("--pdf", required=True, help="Path to the target tax regulation PDF.")
+    parser.add_argument("--source", help="Path or URL to the target source document.")
+    parser.add_argument("--pdf", help="Backward-compatible alias for local PDF path.")
     parser.add_argument("--extractor", required=True, help="Extractor name from the skill registry.")
     parser.add_argument("--outdir", required=True, help="Directory for parser outputs.")
     parser.add_argument(
@@ -52,7 +53,9 @@ def run_command(command: list[str]) -> tuple[int, str]:
 
 def main() -> int:
     args = parse_args()
-    pdf_path = Path(args.pdf).expanduser().resolve()
+    source_value = (args.source or args.pdf or "").strip()
+    if not source_value:
+        raise SystemExit("Either --source or --pdf is required.")
     outdir = Path(args.outdir).expanduser().resolve()
     pack_dir = Path(args.pack_dir).expanduser().resolve() if args.pack_dir else None
     baseline_path = Path(args.baseline).expanduser().resolve() if args.baseline else None
@@ -87,7 +90,7 @@ def main() -> int:
         "python_executable": PROJECT_PYTHON,
         "module_import": module_import_name,
         "module_path": str(module_path),
-        "pdf_path": str(pdf_path),
+        "source_input": source_value,
         "outdir": str(outdir),
         "baseline_path": str(baseline_path) if baseline_path else "",
         "baseline_source": baseline_source,
@@ -111,8 +114,8 @@ def main() -> int:
         [
             PROJECT_PYTHON,
             str(run_script),
-            "--pdf",
-            str(pdf_path),
+            "--source",
+            source_value,
             "--outdir",
             str(outdir),
             "--extractor",

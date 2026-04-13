@@ -1,7 +1,22 @@
 # Progress
 
-- current target PDF: `artifacts/germany-smoke/de-xrechnung-3.0.1.pdf`
-- chosen extractor: `de-xrechnung-3-0-x`
-- last gate result: `pass` via `python scripts/harness/quality_gate.py --pack-dir .opencode/skills/tax-law-parser/packs/tax-pack-de-xrechnung --pdf artifacts/germany-smoke/de-xrechnung-3.0.2.pdf --extractor de-xrechnung-3-0-x --outdir artifacts/germany-smoke/gate-de-pack-302`
-- known bad fields: no blocking extraction defects in the smoke sample; `BT-24`, `BT-82`, `BT-83`, `BT-146`, and `BT-150` now parse with the expected `data_type` and `cardinality`.
-- next smallest change: decide whether to promote a trusted baseline for `tax-pack-de-xrechnung`, because parser, gate, auto-match, and source monitor now all pass without a pack-specific baseline.
+- current target sources:
+  - `artifacts/mexico-smoke/mx-anexo20-2022.pdf`
+  - `https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/tree/`
+  - `https://sdk.myinvois.hasil.gov.my/documents/invoice-v1-1/`
+- chosen extractors:
+  - `mx-cfdi-anexo20-2022`
+  - `peppol-bis-billing-ubl-invoice-web`
+  - `myinvois-invoice-v1-1-web`
+- last parser results:
+  - Mexico PDF: `records: 78`, validator pass, auto-match pass
+  - Peppol web tree: `records: 278`, validator pass, auto-match pass
+  - MyInvois web table: `records: 87`, validator pass, auto-match pass
+- known limits:
+  - Mexico is handled as `xsd_spec_pdf`, not `en16931_ubl`
+  - current Mexico extraction stops before `Secuencia de Formación` / validation sections and only covers the CFDI structure block
+  - web source support is implemented in the internal skill only; `quality_gate.py` still assumes PDF input and was not widened in this pass
+  - no baseline has been promoted yet because all three extractors are still `experimental`
+- next smallest change:
+  - promote Mexico / Peppol / MyInvois to dedicated packs if they become stable entry points
+  - widen harness gate from PDF-only to generic source input when the repo owner explicitly expands edit scope again
