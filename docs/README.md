@@ -26,6 +26,8 @@
   对外安装和运行说明，面向 skill 使用者。
 - [tax_skill_publish_back_architecture_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_publish_back_architecture_v1.md)
   解释安装到本地后的 pack 如何通过受控流程回传到 GitHub 主库。
+- [tax_source_annotation_review_guide_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_source_annotation_review_guide_v1.md)
+  原文件批注反馈教程，说明 PDF 和网站快照怎么批注，才能让后续 parser 修复可消费。
 
 ### 1.2 当前拆分方案
 
@@ -69,9 +71,10 @@
 4. [tax_pdf_family_split_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_pdf_family_split_v1.md)
 5. [tax_skill_install_guide.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_install_guide.md)
 6. [tax_skill_publish_back_architecture_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_publish_back_architecture_v1.md)
-7. [tax_skill_core_pack_split_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_core_pack_split_v1.md)
-8. [tax_skill_multi_install_migration_plan_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_multi_install_migration_plan_v1.md)
-9. 需要追历史时，再看第 3、4 类文档
+7. [tax_source_annotation_review_guide_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_source_annotation_review_guide_v1.md)
+8. [tax_skill_core_pack_split_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_core_pack_split_v1.md)
+9. [tax_skill_multi_install_migration_plan_v1.md](/Users/xueyunsong/Documents/GitHub/gec-ai/docs/tax_skill_multi_install_migration_plan_v1.md)
+10. 需要追历史时，再看第 3、4 类文档
 
 ## 6. 当前文档边界
 
