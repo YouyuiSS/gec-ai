@@ -1,0 +1,22 @@
+# Progress
+
+- current target sources:
+  - `artifacts/mexico-smoke/mx-anexo20-2022.pdf`
+  - `https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/tree/`
+  - `https://sdk.myinvois.hasil.gov.my/documents/invoice-v1-1/`
+- chosen extractors:
+  - `mx-cfdi-anexo20-2022`
+  - `peppol-bis-billing-ubl-invoice-web`
+  - `myinvois-invoice-v1-1-web`
+- last parser results:
+  - Mexico PDF: `records: 78`, validator pass, auto-match pass
+  - Peppol web tree: `records: 278`, validator pass, auto-match pass
+  - MyInvois web table: `records: 87`, validator pass, auto-match pass
+- known limits:
+  - Mexico is handled as `xsd_spec_pdf`, not `en16931_ubl`
+  - current Mexico extraction stops before `Secuencia de Formación` / validation sections and only covers the CFDI structure block
+  - web source support is implemented in the internal skill only; `quality_gate.py` still assumes PDF input and was not widened in this pass
+  - no baseline has been promoted yet because all three extractors are still `experimental`
+- next smallest change:
+  - promote Mexico / Peppol / MyInvois to dedicated packs if they become stable entry points
+  - widen harness gate from PDF-only to generic source input when the repo owner explicitly expands edit scope again

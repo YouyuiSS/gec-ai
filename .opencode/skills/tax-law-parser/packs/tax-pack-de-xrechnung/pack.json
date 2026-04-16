@@ -1,0 +1,8 @@
+{
+  "pack_name": "tax-pack-de-xrechnung",
+  "jurisdiction": "DE",
+  "tax_domain": "einvoice",
+  "entry_profile": "de-xrechnung-3-0-x",
+  "default_family": "en16931_ubl",
+  "runtime_package": "tax_parser_runtime"
+}

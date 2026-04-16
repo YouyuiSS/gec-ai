@@ -2,6 +2,7 @@
   {
     "name": "hr-einvoice-legacy",
     "family": "en16931_ubl",
+    "stability": "stable",
     "module": "profiles.families.en16931_ubl.hr_overlay",
     "description": "Croatia eInvoice HR extension specification parser backed by the existing project script.",
     "jurisdiction": "HR",
@@ -19,6 +20,7 @@
   {
     "name": "hr-ai-generated-smoke",
     "family": "legacy_flat",
+    "stability": "experimental",
     "module": "extractors.hr_ai_generated_smoke",
     "description": "Legacy flat smoke extractor kept for repair-brief experimentation.",
     "jurisdiction": "HR",
@@ -35,6 +37,7 @@
   {
     "name": "rs-srbdt-ext-2025",
     "family": "en16931_ubl",
+    "stability": "stable",
     "module": "profiles.families.en16931_ubl.rs_overlay",
     "description": "Serbia SRBDT EN16931 extension specification parser.",
     "jurisdiction": "RS",
@@ -47,6 +50,87 @@
       "Спецификација прилагођене примене стандарда EN 16931-1",
       "Табела 1 Речник елемената семантичког модела",
       "BT-1 + Invoice number"
+    ]
+  },
+  {
+    "name": "de-xrechnung-3-0-1",
+    "family": "en16931_ubl",
+    "stability": "experimental",
+    "module": "profiles.families.en16931_ubl.de_xrechnung_overlay",
+    "description": "Germany XRechnung 3.0.1 e-invoice specification parser.",
+    "jurisdiction": "DE",
+    "tax_domain": "einvoice",
+    "document_language": "de",
+    "filename_contains": [
+      "XRechnung",
+      "xrechnung"
+    ],
+    "text_contains": [
+      "Semantischer Datentyp",
+      "Specification identifier",
+      "urn:xeinkauf.de:kosit:xrechnung_3.0"
+    ]
+  },
+  {
+    "name": "mx-cfdi-anexo20-2022",
+    "family": "xsd_spec_pdf",
+    "stability": "experimental",
+    "module": "profiles.families.xsd_spec_pdf.mx_cfdi_anexo20_overlay",
+    "description": "Mexico CFDI Anexo 20 v4.0 XSD-style e-invoice specification parser.",
+    "jurisdiction": "MX",
+    "tax_domain": "einvoice",
+    "document_language": "es",
+    "filename_contains": [
+      "anexo20",
+      "Anexo20",
+      "cfdi"
+    ],
+    "text_contains": [
+      "Comprobante Fiscal Digital por Internet",
+      "Elemento: Comprobante",
+      "Tipo Especial tdCFDI:t_Importe",
+      "cfdv40.xsd"
+    ]
+  },
+  {
+    "name": "peppol-bis-billing-ubl-invoice-web",
+    "family": "web_drilldown_tree",
+    "input_kind": "web",
+    "stability": "experimental",
+    "module": "profiles.families.web_drilldown_tree.peppol_bis_billing_invoice_overlay",
+    "description": "Peppol BIS Billing 3.0 UBL Invoice tree web parser.",
+    "jurisdiction": "INTL",
+    "tax_domain": "einvoice",
+    "document_language": "en",
+    "url_contains": [
+      "docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/tree",
+      "docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/"
+    ],
+    "text_contains": [
+      "Peppol BIS Billing 3.0",
+      "UBL Invoice",
+      "Card Name Description",
+      "Specification identifier"
+    ]
+  },
+  {
+    "name": "myinvois-invoice-v1-1-web",
+    "family": "web_inline_table",
+    "input_kind": "web",
+    "stability": "experimental",
+    "module": "profiles.families.web_inline_table.myinvois_invoice_v1_1_overlay",
+    "description": "Malaysia MyInvois Invoice v1.1 web table parser.",
+    "jurisdiction": "MY",
+    "tax_domain": "einvoice",
+    "document_language": "en",
+    "url_contains": [
+      "sdk.myinvois.hasil.gov.my/documents/invoice-v1-1"
+    ],
+    "text_contains": [
+      "Invoice v1.1",
+      "UBL Schema Mapping",
+      "Mandatory",
+      "Cardinality"
     ]
   }
 ]

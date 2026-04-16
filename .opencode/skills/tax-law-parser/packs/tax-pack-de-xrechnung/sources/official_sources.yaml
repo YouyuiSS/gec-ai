@@ -1,0 +1,64 @@
+schema_version: "1.0"
+jurisdiction: "DE"
+tax_domain: "einvoice"
+verified_on: "2026-04-11"
+sources:
+  - source_id: "de_xrechnung_versions_and_bundles"
+    source_name: "XRechnung versions and bundles"
+    source_kind: "specification"
+    document_family: "en16931_ubl"
+    authority: "KoSIT / XStandards Einkauf"
+    landing_url: "https://xeinkauf.de/xrechnung/versionen-und-bundles/"
+    attachment_url: "https://xeinkauf.de/app/uploads/2024/07/XRechnung-v3.0.2.pdf"
+    monitor_strategy:
+      primary_anchor: "landing_page_then_attachment"
+      detect:
+        - "landing_html_checksum"
+        - "attachment_checksum"
+        - "pdf_first_page_version"
+      review_if:
+        - "landing page text changes"
+        - "attachment checksum changes"
+        - "current bundle version changes"
+    landing_page_text_contains:
+      - "Versionen und Bundles"
+      - "Aktuelle Version 3.0"
+      - "XRechnung Bundle 3.0.2"
+    version_signal:
+      location: "landing_page"
+      extraction_mode: "regex"
+      regex: "XRechnung Bundle\\s+[0-9]+\\.[0-9]+\\.[0-9]+"
+      observed_value: "XRechnung Bundle 3.0.2"
+    current_observation:
+      observed_on: "2026-04-11"
+      notes:
+        - "The current versions page was modified on 2026-02-05 and lists XRechnung Bundle 3.0.2 as the active 3.0 line artifact."
+        - "The parser was smoke-tested against both the official 2023-09-22 XRechnung 3.0.1 PDF and the current 3.0.2 PDF."
+
+  - source_id: "de_xrechnung_legal_basis"
+    source_name: "XRechnung legal basis"
+    source_kind: "law"
+    document_family: "einvoice_law"
+    authority: "KoSIT / XStandards Einkauf"
+    landing_url: "https://xeinkauf.de/xrechnung/rechtliche-grundlagen/"
+    monitor_strategy:
+      primary_anchor: "landing_page"
+      detect:
+        - "landing_html_checksum"
+        - "listed_acts_snapshot"
+      review_if:
+        - "landing page text changes"
+        - "federal or state legal references change"
+    landing_page_text_contains:
+      - "Rechtliche Grundlagen"
+      - "Richtlinie 2014/55/EU"
+      - "Gesetz zur Förderung der elektronischen Verwaltung"
+    version_signal:
+      location: "landing_page"
+      extraction_mode: "regex"
+      regex: "Richtlinie 2014/55/EU|Gesetz zur Förderung der elektronischen Verwaltung"
+      observed_value: "Richtlinie 2014/55/EU"
+    current_observation:
+      observed_on: "2026-04-11"
+      notes:
+        - "This source tracks legal context rather than field-level technical semantics."

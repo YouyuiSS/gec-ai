@@ -1,0 +1,21 @@
+[
+  {
+    "name": "de-xrechnung-3-0-x",
+    "family": "en16931_ubl",
+    "stability": "experimental",
+    "module_path": "profiles/overlays/de_xrechnung_overlay.py",
+    "description": "Germany XRechnung 3.0.x e-invoice specification parser.",
+    "jurisdiction": "DE",
+    "tax_domain": "einvoice",
+    "document_language": "de",
+    "filename_contains": [
+      "XRechnung",
+      "xrechnung"
+    ],
+    "text_contains": [
+      "Semantischer Datentyp",
+      "Specification identifier",
+      "urn:xeinkauf.de:kosit:xrechnung_3.0"
+    ]
+  }
+]

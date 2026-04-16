@@ -1,0 +1,21 @@
+[
+  {
+    "name": "rs-srbdt-ext-2025",
+    "family": "en16931_ubl",
+    "stability": "stable",
+    "module_path": "profiles/overlays/rs_overlay.py",
+    "baseline_path": "baselines/rs-srbdt-ext-2025/field_catalog.json",
+    "description": "Serbia SRBDT EN16931 extension specification parser.",
+    "jurisdiction": "RS",
+    "tax_domain": "einvoice",
+    "document_language": "sr",
+    "filename_contains": [
+      "spec-srbdt-ext-en16931"
+    ],
+    "text_contains": [
+      "Спецификација прилагођене примене стандарда EN 16931-1",
+      "Табела 1 Речник елемената семантичког модела",
+      "BT-1 + Invoice number"
+    ]
+  }
+]

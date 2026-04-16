@@ -1,0 +1,8 @@
+{
+  "pack_name": "tax-pack-hr-einvoice",
+  "jurisdiction": "HR",
+  "tax_domain": "einvoice",
+  "entry_profile": "hr-einvoice-legacy",
+  "default_family": "hr_einvoice_legacy",
+  "runtime_package": "tax_parser_runtime"
+}

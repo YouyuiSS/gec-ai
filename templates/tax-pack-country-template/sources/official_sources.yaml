@@ -1,0 +1,60 @@
+schema_version: "1.0"
+jurisdiction: "XX"
+tax_domain: "einvoice"
+verified_on: "YYYY-MM-DD"
+sources:
+  - source_id: "xx_primary_spec"
+    source_name: "Replace with the official specification title"
+    source_kind: "specification"
+    document_family: "en16931_ubl"
+    authority: "Replace with the issuing authority"
+    landing_url: "https://example.gov/specification-page"
+    attachment_url: "https://example.gov/specification.pdf"
+    monitor_strategy:
+      primary_anchor: "landing_page_then_attachment"
+      detect:
+        - "landing_html_checksum"
+        - "attachment_checksum"
+        - "pdf_first_page_version"
+      review_if:
+        - "landing page text changes"
+        - "attachment checksum changes"
+        - "landing page text and PDF version disagree"
+    landing_page_text_contains:
+      - "replace with page title"
+      - "replace with stable identifying text"
+    version_signal:
+      location: "pdf_first_page"
+      extraction_mode: "regex"
+      regex: "replace with a real version regex"
+      observed_value: "replace after first verified download"
+    current_observation:
+      observed_on: "YYYY-MM-DD"
+      notes:
+        - "Describe why this page is the anchor."
+        - "Describe any known mismatch between landing page and PDF."
+
+  - source_id: "xx_related_law"
+    source_name: "Replace with the supporting law or legal basis"
+    source_kind: "law"
+    document_family: "supporting_law"
+    authority: "Replace with the legal authority"
+    landing_url: "https://example.gov/law-page"
+    monitor_strategy:
+      primary_anchor: "landing_page"
+      detect:
+        - "landing_html_checksum"
+        - "official_gazette_citation"
+      review_if:
+        - "gazette citation changes"
+        - "linked attachment changes"
+    landing_page_text_contains:
+      - "replace with law title"
+    version_signal:
+      location: "landing_page"
+      extraction_mode: "official_gazette_citation"
+      observed_value: "replace after verification"
+    current_observation:
+      observed_on: "YYYY-MM-DD"
+      notes:
+        - "Use this as regulatory context, not as the field-level spec."
